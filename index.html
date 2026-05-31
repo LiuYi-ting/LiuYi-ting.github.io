@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>江阴初级中学初二28班聊天群相关工具</title>
     <style>
         :root {
@@ -18,6 +18,7 @@
             --shadow-hover: 0 3px 10px rgba(0, 0, 0, 0.10);
             --radius: 8px;
             --transition: 0.2s ease;
+            --toc-bg: rgba(255, 252, 240, 0.96);
         }
 
         * {
@@ -36,6 +37,7 @@
             line-height: 1.8;
             color: var(--text);
             -webkit-font-smoothing: antialiased;
+            position: relative;
         }
 
         /* 主容器 */
@@ -47,8 +49,11 @@
             gap: 0;
         }
 
-        /* ========== 面包屑导航 ========== */
+        /* ========== 粘性面包屑 ========== */
         .breadcrumb {
+            position: sticky;
+            top: 12px;
+            z-index: 100;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
@@ -56,42 +61,43 @@
             font-size: 14px;
             color: var(--muted);
             padding: 10px 16px;
-            background: var(--card-bg);
+            background: rgba(253, 252, 249, 0.92);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             margin-bottom: 16px;
             min-height: 42px;
             box-shadow: var(--shadow);
             user-select: none;
+            transition: background 0.2s;
         }
         .breadcrumb .crumb {
             cursor: pointer;
             color: var(--accent);
             font-weight: bold;
-            transition: color var(--transition);
+            transition: all var(--transition);
             white-space: nowrap;
-            padding: 2px 4px;
-            border-radius: 3px;
+            padding: 5px 8px;
+            border-radius: 20px;
+            background: rgba(179, 0, 0, 0.02);
         }
         .breadcrumb .crumb:hover {
             color: var(--accent-light);
-            text-decoration: underline;
-            background: rgba(179, 0, 0, 0.04);
+            text-decoration: none;
+            background: rgba(179, 0, 0, 0.08);
+            transform: translateY(-1px);
         }
         .breadcrumb .crumb.current {
             color: var(--text);
             cursor: default;
             font-weight: normal;
-            pointer-events: none;
-        }
-        .breadcrumb .crumb.current:hover {
-            text-decoration: none;
             background: transparent;
+            pointer-events: none;
         }
         .breadcrumb .sep {
             color: #bbb;
-            pointer-events: none;
-            user-select: none;
+            font-size: 16px;
+            margin: 0 2px;
         }
 
         /* ========== 列表视图容器 ========== */
@@ -201,7 +207,7 @@
             display: block;
         }
 
-        /* 文档内容样式 */
+        /* 文档主体样式 - 右侧留出TOC空间 */
         .doc-body {
             font-family: "宋体", "SimSun", "Times New Roman", "Noto Serif SC", serif;
             background-color: #fefefe;
@@ -241,10 +247,12 @@
             text-align: center;
             margin: 40px 0 20px 0;
             color: #b30000;
+            scroll-margin-top: 70px;
         }
         .doc-body .article {
             margin-bottom: 1.2em;
             text-indent: 0;
+            scroll-margin-top: 70px;
         }
         .doc-body .article-title {
             font-weight: bold;
@@ -289,6 +297,7 @@
             text-align: center;
             margin-bottom: 10px;
             color: #b30000;
+            scroll-margin-top: 70px;
         }
 
         /* 返回按钮 */
@@ -329,7 +338,108 @@
             transform: translateX(-3px);
         }
 
-        /* ========== 响应式 ========== */
+        /* ========== 悬浮目录 TOC 样式 ========== */
+        .floating-toc {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            width: 260px;
+            max-height: 70vh;
+            background: var(--toc-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(224, 220, 213, 0.8);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            padding: 16px 12px;
+            overflow-y: auto;
+            z-index: 99;
+            font-family: inherit;
+            transition: all 0.2s;
+            scrollbar-width: thin;
+            display: none;
+        }
+        .floating-toc.visible {
+            display: block;
+            animation: fadeSlideIn 0.2s ease;
+        }
+        .floating-toc h4 {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 0 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .floating-toc .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .floating-toc .toc-list li {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .floating-toc .toc-list a {
+            text-decoration: none;
+            color: #4a3b2c;
+            font-size: 13px;
+            display: block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: all 0.15s;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .floating-toc .toc-list a:hover {
+            background: rgba(179, 0, 0, 0.08);
+            color: var(--accent);
+            transform: translateX(3px);
+        }
+        .floating-toc .toc-list a.active {
+            background: rgba(179, 0, 0, 0.12);
+            color: var(--accent);
+            font-weight: bold;
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+        }
+        /* 目录层级缩进 */
+        .floating-toc .toc-list .toc-level-1 {
+            font-weight: 600;
+            margin-top: 6px;
+            color: #2c241a;
+        }
+        .floating-toc .toc-list .toc-level-2 {
+            padding-left: 12px;
+        }
+        .floating-toc .toc-list .toc-level-3 {
+            padding-left: 24px;
+            font-size: 12px;
+        }
+        /* 移动端适配：右侧目录隐藏，改为可点击小圆点展开（简单处理） */
+        @media (max-width: 900px) {
+            .floating-toc {
+                width: 240px;
+                right: 10px;
+                top: 80px;
+                max-height: 60vh;
+            }
+        }
+        @media (max-width: 720px) {
+            .floating-toc {
+                display: none !important;  /* 移动端默认隐藏，避免遮挡，用户可手动从菜单调出，简化处理 */
+            }
+            .doc-body {
+                padding: 20px 16px;
+            }
+        }
+        /* 针对桌面优化，给文档右侧预留一点空间（不需要太刻意，因为TOC悬浮不占位） */
+
+        /* 响应式调整 */
         @media (max-width: 600px) {
             body {
                 padding: 16px 10px 40px;
@@ -337,8 +447,7 @@
             .breadcrumb {
                 font-size: 13px;
                 padding: 8px 12px;
-                gap: 4px;
-                margin-bottom: 10px;
+                top: 8px;
             }
             .list-card {
                 padding: 14px 16px;
@@ -390,572 +499,409 @@
 </head>
 <body>
 
-    <div class="app-container" id="appContainer">
-        <!-- 面包屑导航 -->
-        <nav class="breadcrumb" id="breadcrumb">
-            <span class="crumb current" data-target="home">📁 首页</span>
-        </nav>
+<div class="app-container" id="appContainer">
+    <!-- 面包屑导航（粘性） -->
+    <nav class="breadcrumb" id="breadcrumb">
+        <span class="crumb current" data-target="home">📁 首页</span>
+    </nav>
 
-        <!-- 主列表视图：显示"入群必读" -->
-        <div class="list-view" id="listHome">
-            <div class="list-card" data-action="openFolder" data-folder="入群必读">
-                <div class="icon icon-folder">📂</div>
-                <div class="card-info">
-                    <div class="card-title">入群必读</div>
-                    <div class="card-meta">包含 2 份文件</div>
-                </div>
-                <span class="arrow">›</span>
+    <!-- 主列表视图 -->
+    <div class="list-view" id="listHome">
+        <div class="list-card" data-action="openFolder" data-folder="入群必读">
+            <div class="icon icon-folder">📂</div>
+            <div class="card-info">
+                <div class="card-title">入群必读</div>
+                <div class="card-meta">包含 2 份文件</div>
             </div>
-        </div>
-
-        <!-- 子列表视图：入群必读下的2项 -->
-        <div class="list-view hidden" id="listFolder">
-            <button class="back-btn" data-action="backToHome">
-                <span class="back-arrow">←</span> 返回
-            </button>
-            <div class="list-card" data-action="openDoc" data-doc="general">
-                <div class="icon icon-law">⚖</div>
-                <div class="card-info">
-                    <div class="card-title">社群自治总纲</div>
-                    <div class="card-meta">2026年5月29日版 · 待审议</div>
-                </div>
-                <span class="arrow">›</span>
-            </div>
-            <div class="list-card" data-action="openDoc" data-doc="penal">
-                <div class="icon icon-doc">📜</div>
-                <div class="card-info">
-                    <div class="card-title">严重违规行为处理条例</div>
-                    <div class="card-meta">依据《社群自治总纲》第四条制定</div>
-                </div>
-                <span class="arrow">›</span>
-            </div>
-        </div>
-
-        <!-- 内容视图：社群自治总纲 -->
-        <div class="content-view" id="docGeneral">
-            <button class="back-btn" data-action="backToFolder">
-                <span class="back-arrow">←</span> 返回
-            </button>
-            <div class="doc-body">
-                <div class="title">社群自治总纲</div>
-                <div class="subtitle">（2026年5月29日版 · 待审议）</div>
-
-                <div class="preamble">
-                    <strong>序 言</strong><br>
-                    本群全体成员，为维系彼此信赖之纽带，保障自由、有序、趣味之交流环境，基于共同意志，特制定本总纲，以为群内一切活动之根本准则。
-                </div>
-
-                <div class="chapter">第一章 总 纲</div>
-
-                <div class="article">
-                    <span class="article-title">第一条 群聊性质</span>
-                    本群是由江阴初级中学初二28班部分同学，基于自愿、平等、互信原则结成的网络社群。本群为独立虚拟空间，不依附于任何现实组织，不参与现实学校管理，仅供成员课余交流、分享趣闻、互助学习之用。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二条 基本准则</span>
-                    本群以"完全信赖、自由表达、相互尊重、保守秘密"为核心准则。鼓励成员在不违反群规的前提下，发表非恶意的任何形式内容，包括怪异图片、冷门梗、抽象发言及实验性创作。本群严禁任何形式的网络暴力、人身攻击和恶意造谣，倡导友善、理性、包容的交流风气。
-                </div>
-                <div class="article">
-                    <span class="article-title">第三条 治理原则</span>
-                    本群实行在群主协调下的管理员分工负责制。管理员由全体成员选举产生，对全体成员负责，受成员监督。管理员依照本总纲及配套条例维护群聊秩序、保障成员权利。对管理员履职行为有异议者，应通过申诉、复核等正当程序提出，不得以破坏秩序的方式对抗。
-                </div>
-                <div class="article">
-                    <span class="article-title">第四条 内部自治范围</span>
-                    本群依照本总纲及依据其制定的《严重违规行为处理条例》《日常秩序维护办法》《群内纠纷调解办法》实行自治管理。全体成员在规则面前一律平等，平等享有权利，平等履行义务。
-                </div>
-                <div class="article">
-                    <span class="article-title">第五条 与外部法律关系</span>
-                    本群规则仅适用于群内虚拟空间。成员在现实生活中的行为，由其本人依法自行负责。本群规则之效力，不得与中华人民共和国法律、法规及公序良俗相抵触。
-                </div>
-
-                <div class="chapter">第二章 成员基本权利</div>
-
-                <div class="article">
-                    <span class="article-title">第六条 言论自由权</span>
-                    成员享有在总纲允许范围内自由发表观点、分享各类内容的权利。
-                </div>
-                <div class="article">
-                    <span class="article-title">第七条 选举权与被选举权</span>
-                    入群时间达七日之正式成员，享有选举权与被选举权：<br>
-                    （一）选举权：有权参与管理员的投票选举。<br>
-                    （二）被选举权：有权被提名为管理员候选人并当选任职。<br>
-                    （三）选举办法：由群主或现任管理员组织匿名投票，得票前三名者，依次担任行政管理员、司法管理员、监察管理员。选举每六个月举行一次，如管理员空缺超过两人，须提前举行。<br>
-                    （四）群主不参与管理员选举，但拥有对选举结果的确认权，确认仅限于核实程序是否合规。
-                </div>
-                <div class="article">
-                    <span class="article-title">第八条 投票权</span>
-                    正式成员有权对新成员入群申请进行投票。投票选项为"同意"或"不同意"，结果依本总纲第二十八条之规定执行。
-                </div>
-                <div class="article">
-                    <span class="article-title">第九条 监督权与申诉权</span>
-                    成员有权对管理员及群主的行为提出监督意见；有权对所受处罚向司法管理员提出书面申诉；有权向监察管理员举报任何违规行为。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十条 知情权</span>
-                    成员有权查阅群内所有非私密的公告、处罚记录、选举结果。管理员团队应每月公布一次管理透明度报告。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十一条 特定信息讨论权</span>
-                    （一）成员有权在本群讨论、分享、创作本款第（二）项所定义之特定信息。<br>
-                    （二）特定信息，指正常社交中不常见但无恶意之内容，包括但不限于：怪异图片、冷门梗、抽象发言、实验性创作、非常规审美、小众兴趣话题、悬疑或虚构世界观设定等。明显违背中华人民共和国法律的内容，不在本款保护之列。<br>
-                    （三）成员不得以行使本条权利为名，实施刷屏、恶意恶心、人身攻击、泄密等行为，违者依相应条例处理。<br>
-                    （四）对特定信息不感兴趣之成员，应自行忽略或选择不看，不得以"恶心""无聊""看不懂"等纯主观理由，强制要求发言者停止。群聊无强制折叠功能，成员应自主管理个人阅读体验。<br>
-                    （五）对已造成普遍不适内容的拒绝权：若特定内容达到"严重令人不适"之程度（如排泄物、腐烂尸体特写、血腥残肢等），任何成员均有权明确表示拒绝（如"请别发了""这个太过了，停一下"）。发言者收到明确拒绝后，应立即停止发送同类内容，否则按扰乱秩序处理。"严重令人不适"的判断，由司法管理员结合一般初中生的普遍接受标准综合裁量；争议显著时，以群内投票过半数成员的判断为准。<br>
-                    （六）预警义务与责任豁免：鼓励成员在发布可能引起强烈不适的内容前，添加预警标签（如【慎入】【猎奇】【心理准备】等）。添加预警标签后发布的内容，即使造成部分成员不适，不视为违规；未添加预警标签，且造成三人以上成员明确表示精神不适的，司法管理员可裁定责令发布者道歉或删除内容。
-                </div>
-
-                <div class="chapter">第三章 成员基本义务</div>
-
-                <div class="article">
-                    <span class="article-title">第十二条 保密义务</span>
-                    成员负有下列保密义务：<br>
-                    （一）不得以任何形式，向群外人员透露本群之存在、名称、二维码、成员名单等信息。<br>
-                    （二）不得向群外泄露群内任何聊天记录、文件、截图、链接等内容。<br>
-                    违反本义务者，一经核实，立即永久移出群聊并列入黑名单。其违规行为可在群内公告，以作警示。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十三条 反刷屏义务</span>
-                    成员负有维护正常交流秩序、反刷屏之义务：<br>
-                    （一）禁止连续发送五条及以上完全相同的内容。<br>
-                    （二）禁止连续发送十条及以上高度相似的内容。<br>
-                    违反者，按下列梯度处理（k为累计违规次数）：<br>
-                    · 第1次：警告。<br>
-                    · 第2次：公开批评。<br>
-                    · 第3次：临时移出2小时。<br>
-                    · 第4次：临时移出4小时。<br>
-                    · 第5次：临时移出8小时。<br>
-                    · 第6次：临时移出16小时。<br>
-                    · 第7次及以后：临时移出2^(k-2)小时。<br>
-                    所有违规记录由司法管理员统一登记，跨次累计，不予定期清零。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十四条 禁止私自邀请新成员</span>
-                    任何成员不得在未经入群投票批准的情况下，将新人邀请入群。必须先经投票通过，方可发出入群邀请。违反者，依本总纲第十三条第三次违规之标准处理，并须立即将所邀请之新人移出。情节严重者，司法管理员可认定其为泄密共犯，处以永久移出。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十五条 对外回应指引</span>
-                    （一）成员在群外被问及本群时，可得体回应，如"是同学间的小群，随便聊天"。本群鼓励成员保护社群隐私，但严禁任何强制、诱导成员为隐瞒本群存在而说谎的行为。<br>
-                    （二）任何成员不得主动向群外人员展示、传播本群群名、二维码、成员名单、聊天记录等具体信息。<br>
-                    （三）因主动或重大过失泄露本条第（二）项所指具体信息，造成严重后果的，依照《严重违规行为处理条例》中关于泄密的规定处理。
-                </div>
-
-                <div class="chapter">第四章 管理团队</div>
-                <div class="article">
-                    <span class="section-label">第一节 群 主</span>
-                </div>
-
-                <div class="article">
-                    <span class="article-title">第十六条 群主职权</span>
-                    群主是社群之最高协调者与最终裁定者，由社群创始人担任。群主行使下列职权：<br>
-                    （一）提议修改、解释本总纲，修改须依第三十一条程序通过。<br>
-                    （二）组织管理员选举，确认选举结果。<br>
-                    （三）在三位管理员之间就管理事务出现重大争议且无法调和时，做出最终裁定。<br>
-                    （四）宣布特别管理状态：当发生重大泄密、严重外部威胁、群聊秩序面临崩溃等紧急情况时，群主可宣布进入特别管理状态，并采取全员禁言、暂时解散群聊、重组群聊等措施。特别管理状态持续时间不得超过72小时，到期自动解除。如需延长，须经全体成员投票且赞成率达70%以上。监察管理员在特别管理状态期间，有权随时要求群主说明情况。<br>
-                    （五）决定全面改选管理员团队，此项决定须经全体成员投票，赞成率达70%以上方可通过。<br>
-                    （六）任命空缺之管理员职务，但被任命者须在下一次选举时经成员追认，否则自动离职。<br>
-                    （七）行使特别赦免权，其条件与程序依第十七条之规定。<br>
-                    （八）群主更替：群主可提名继任者，经七日公示后由全体成员投票，赞成率达60%以上即通过。继任者须入群满三个月，且无泄密、人身攻击等严重违规记录。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十七条 特别赦免权</span>
-                    群主享有对被处罚成员减轻或免除剩余处罚的特别赦免权。其启动条件为：<br>
-                    （一）被处罚人已真诚悔过，并在群内公开道歉，承诺不再违规；<br>
-                    （二）违规行为未造成严重后果（泄密、严重人身攻击等不在此列）；<br>
-                    （三）所受处罚执行时间已过半；<br>
-                    （四）已取得直接受影响者的公开谅解。<br>
-                    赦免须征求司法管理员及监察管理员的意见，并在群内公示。若有超过30%的实际投票成员反对，监察管理员可提请复核。对同一人的同一违规行为，只能赦免一次。被赦免后七日内再次违规的，原赦免自动撤销，恢复剩余处罚并叠加新处罚。
-                </div>
-
-                <div class="article">
-                    <span class="section-label">第二节 管理员</span>
-                </div>
-
-                <div class="article">
-                    <span class="article-title">第十八条 管理员设置与产生</span>
-                    本群设管理员三人，分别行使行政、司法、监察职权。管理员由全体成员选举产生，任期六个月，连任不得超过两届。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十九条 行政管理员职权</span>
-                    行政管理员负责下列事务：<br>
-                    （一）执行本总纲及管理团队的决定；<br>
-                    （二）日常维护群聊秩序，对反刷屏等即时违规行为进行警告，执行《日常秩序维护办法》中的当场处理措施；<br>
-                    （三）发起新成员入群投票；<br>
-                    （四）发布群公告及通知；<br>
-                    （五）在紧急情况下，依程序对严重扰乱秩序者先行采取临时移出措施。<br>
-                    行政管理员周末应保持在线。确无法履职时，可将权限临时转交司法或监察管理员代行，最长不超过72小时，并须公开说明。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十条 司法管理员职权</span>
-                    司法管理员负责下列事务：<br>
-                    （一）审理成员对警告、移出等处理决定不服所提起的申诉；<br>
-                    （二）审理《严重违规行为处理条例》所规定之泄密、人身攻击、造谣等案件；<br>
-                    （三）审理《群内纠纷调解办法》所涉之侵权与纠纷；<br>
-                    （四）统一登记、管理反刷屏等违规记录；<br>
-                    （五）裁决成员间因言论引发的、未达到严重违规程度的纠纷；<br>
-                    （六）对行政管理员采取的紧急措施进行合规性审查。<br>
-                    司法管理员的裁决为群内最终裁决。成员对裁决不服的，可向群主申请复核一次。群主可维持、撤销裁决或发回重审。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十一条 监察管理员职权</span>
-                    监察管理员负责下列事务：<br>
-                    （一）监督群主、行政管理员、司法管理员遵守本总纲的情况；<br>
-                    （二）受理成员对管理员及群主行为的投诉，以及泄密行为的举报；<br>
-                    （三）调查管理员滥用职权的行为，并向群主提出处理建议；<br>
-                    （四）每月公布管理透明度报告；<br>
-                    （五）对群主发起不信任动议：动议由监察管理员提出，经另一名管理员同意，并交付全体成员投票，若投票成员中超过50%表示同意，则群主应主动更替，依第十六条第八款之程序产生新群主。
-                </div>
-
-                <div class="article">
-                    <span class="section-label">第三节 选举与更替</span>
-                </div>
-
-                <div class="article">
-                    <span class="article-title">第二十二条 选举周期</span>
-                    首次管理员选举于本总纲公布后一周内举行，此后每六个月举行一次。选举采用匿名投票，得票前三名当选。票数相同时，由群主裁定。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十三条 管理员更替</span>
-                    管理员在任期内有下列情形之一者，可由群主或20%以上成员联名提议更替：<br>
-                    （一）严重违反本总纲；<br>
-                    （二）连续两周未能履行其应尽职责；<br>
-                    （三）滥用职权，造成恶劣影响。<br>
-                    更替动议须经全体成员投票，赞成率达到70%者，即予更替。空缺由群主临时任命，并于下次选举时补选。
-                </div>
-
-                <div class="article">
-                    <span class="section-label">第四节 分权与制衡</span>
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十四条 职权分立</span>
-                    行政管理员不得参与具体案件的司法审理。司法管理员不得擅自执行处罚，所有处罚决定的执行权归行政管理员。监察管理员不得直接修改或撤销行政、司法决定，其监督意见须向群主提出，或通过发起不信任动议的方式行使。
-                </div>
-
-                <div class="chapter">第五章 临时移出措施的执行与复核</div>
-
-                <div class="article">
-                    <span class="article-title">第二十五条 先行移出与事后复核</span>
-                    对于正在发生的严重扰乱秩序行为（如恶意刷屏、持续性人身攻击），行政管理员有权在不经事先投票的情况下，先行将行为人临时移出。移出后，执行人须在24小时内在群内发起复核投票，说明理由并举证。投票选项为"同意移出"与"不同意移出"。投票时长为24小时，仅统计实际投票者。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十六条 复核结果与责任</span>
-                    若"不同意移出"票数超过实际投票人数的60%，则移出无效，被移出人应立即恢复入群。此时，执行移出的管理员须承担误判责任：立即解除其管理员职务，三十日内不得担任任何管理员，并丧失下届被选举权。<br>
-                    若"不同意移出"票数未超过60%，则移出有效，此决定为最终决定，不得再申诉。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二十七条 特别管理状态下的豁免</span>
-                    群主宣布进入特别管理状态后，为恢复秩序而采取的集体解散或重组措施，不受第二十五、二十六条限制。
-                </div>
-
-                <div class="chapter">第六章 新成员入群</div>
-                <div class="article">
-                    <span class="article-title">第二十八条 入群核准程序</span>
-                    新人申请入群，须通过以下任一通道：<br>
-                    （一）管理员通道：三名管理员一致同意。<br>
-                    （二）成员通道：在周末连续24小时的投票窗口内，同意票超过实际投票人数之半数。同时，参与投票人数须不少于群成员总数之20%，或不少于5人（取人数较少者）。<br>
-                    投票由行政管理员发起，须公示候选人之昵称、来源及入群理由。投票通过后，方可邀请入群。未通过者，三十日后方可重新申请。
-                </div>
-
-                <div class="chapter">第七章 成员退出</div>
-                <div class="article">
-                    <span class="article-title">第二十九条 自愿退出</span>
-                    成员可自愿退群。退群前建议告知管理员。退群后三十日内不得重新申请入群。退群不免除其退群前已发生违规行为的责任。
-                </div>
-
-                <div class="chapter">第八章 群名、群歌、群徽</div>
-                <div class="article">
-                    <span class="article-title">第三十条 社群标识</span>
-                    本群之群名、群歌、群徽由全体成员投票选定。一经确定，即受本总纲保护，任何成员不得擅自更改或恶意篡改。
-                </div>
-
-                <div class="chapter">第九章 附 则</div>
-                <div class="article">
-                    <span class="article-title">第三十一条 总纲修改</span>
-                    本总纲之修改，须经群主提议，或10%以上成员联名提出，经过至少三日公示与投票，且赞成票达到全体成员之70%以上，方可通过。
-                </div>
-                <div class="article">
-                    <span class="article-title">第三十二条 施行日期</span>
-                    本总纲自公布之日起施行。
-                </div>
-
-                <div class="doc-end">（社群自治总纲 完）</div>
-            </div>
-        </div>
-
-        <!-- 内容视图：严重违规行为处理条例 -->
-        <div class="content-view" id="docPenal">
-            <button class="back-btn" data-action="backToFolder">
-                <span class="back-arrow">←</span> 返回
-            </button>
-            <div class="doc-body">
-                <div class="title" style="font-size: 24px;">严重违规行为处理条例</div>
-                <div class="subtitle">（依据《社群自治总纲》第四条制定）</div>
-
-                <div class="chapter">第一编 总 则</div>
-                <div class="article">
-                    <span class="article-title">第一条</span> 为处理群内最严重的违规行为，维护群聊安全，根据《社群自治总纲》，制定本条例。
-                </div>
-                <div class="article">
-                    <span class="article-title">第二条</span> 本条例所称"严重违规行为"，仅指群内严重违反基本准则的行为，适用群内处理措施，不涉及现实法律后果。
-                </div>
-                <div class="article">
-                    <span class="article-title">第三条</span> 处理严重违规行为，须以本条例明文规定为依据；本条例无明文规定的，不得认定为严重违规行为并施以处理。
-                </div>
-                <div class="article">
-                    <span class="article-title">第四条</span> 对任何人的严重违规行为，在处理上一律平等。
-                </div>
-                <div class="article">
-                    <span class="article-title">第五条</span> 处理措施种类如下：<br>
-                    （一）警告、公开训诫；<br>
-                    （二）限制群内部分权利（如暂停投票权、发言权）；<br>
-                    （三）临时移出群聊（12小时、24小时、48小时、72小时、7日）；<br>
-                    （四）永久移出并列入黑名单；<br>
-                    （五）附加措施：公开道歉、完成一项对群聊有益的志愿服务（如整理群文件、编写群规宣传文案）。
-                </div>
-                <div class="article">
-                    <span class="article-title">第六条</span> 故意违规，从重处理；过失违规，从轻处理。三十日内再次违规者，在原处理基础上加重50%。
-                </div>
-                <div class="article">
-                    <span class="article-title">第七条 从重情节</span>
-                    （一）累犯；<br>
-                    （二）共同违规中的主导者；<br>
-                    （三）违规对象为管理员、群主或新入群成员；<br>
-                    （四）在群主宣布的特别管理状态期间违规；<br>
-                    （五）教唆或胁迫他人违规。
-                </div>
-                <div class="article">
-                    <span class="article-title">第八条 从轻、减轻或免除处理情节</span>
-                    （一）主动向管理员坦白并如实陈述；<br>
-                    （二）检举他人严重违规行为，经查证属实；<br>
-                    （三）取得直接受影响者的书面或公开谅解；<br>
-                    （四）初次违规且情节轻微；<br>
-                    （五）因遭受严重挑衅或霸凌而被动反击。
-                </div>
-                <div class="article">
-                    <span class="article-title">第九条 共同违规</span>
-                    二人以上共同故意实施严重违规行为者，按其在行为中的作用分别处理。主导者从重处理，参与者从轻或减轻处理。教唆他人者，按主导者处理。被胁迫参与者，应减轻或免除处理。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十条 违规中止与未遂</span>
-                    在违规过程中自动放弃的，可免除处理；因意志以外原因未能得逞的，可从轻处理。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十一条 记录消除</span>
-                    因过失违规或一般情节之行为被处理后，连续三个月无任何违规的，可向司法管理员申请消除该次记录。记录消除后，不影响未来违规时首次违规的认定。
-                </div>
-
-                <div class="chapter">第二编 分 则</div>
-                <div class="article">
-                    <span class="section-label">第四章 危害社群安全行为</span>
-                </div>
-                <div class="article">
-                    <span class="article-title">第十二条 故意泄密</span>
-                    故意违反保密义务，将群内聊天记录、群名、二维码等泄露给群外人，且造成下列后果之一的，构成故意泄密：<br>
-                    （一）导致三名以上成员退群；<br>
-                    （二）导致群主被迫解散或重组群聊；<br>
-                    （三）导致成员在现实中受到较大影响（如被老师批评、被家长严厉管教）；<br>
-                    （四）泄露内容被大范围传播。<br>
-                    处理：永久移出并列入黑名单。<br>
-                    泄露少量非核心信息（如单张不重要表情包、无上下文的一句话截图），且未造成上述后果的，不构成本条行为，依《日常秩序维护办法》处理。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十三条 过失致泄密</span>
-                    因疏忽大意或过于自信，过失导致泄密，并造成第十二条所列严重后果的，处公开道歉并临时移出72小时。过失泄密后主动报告、积极消除影响并取得全体成员谅解的，可免除临时移出，改为公开批评并观察7日。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十四条 严重私自邀请新成员</span>
-                    未经入群投票批准，私自邀请新成员入群累计达两次以上者，处临时移出48小时；导致被邀请者泄密或破坏群内秩序的，处永久移出。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十五条 冒充管理员</span>
-                    盗用管理员头像或昵称，或自称管理员、群主以发布虚假指令、威胁他人、骗取信息者，处临时移出48小时；造成恐慌或实际损害的，处永久移出。
-                </div>
-
-                <div class="article">
-                    <span class="section-label">第五章 侵犯人身权利行为</span>
-                </div>
-                <div class="article">
-                    <span class="article-title">第十六条 人身攻击</span>
-                    使用恶劣侮辱性词汇、恶毒诅咒、公开他人真实姓名班级照片、威胁现实安全等行为，构成人身攻击。<br>
-                    一般情节：公开道歉并临时移出24小时。<br>
-                    从重情节：<br>
-                    （一）使用脏话侮辱对方父母等直系亲属的，无论有无其他攻击内容，均视为严重人身攻击，处公开道歉并临时移出72小时，同时限制投票权30天。<br>
-                    （二）攻击三人以上，或导致受害人退群的，处永久移出。<br>
-                    （三）攻击管理员或群主的，处永久移出。<br>
-                    （四）攻击行为在群内引发严重对立与分裂的，处永久移出。
-                </div>
-                <div class="article">
-                    <span class="article-title">第十七条 造谣传谣</span>
-                    捏造虚假事实恶意散布，或明知是谣言仍传播，且造成下列后果之一的，构成造谣传谣：<br>
-                    （一）导致两名以上成员之间爆发冲突；<br>
-                    （二）导致受害者被三人以上孤立、嘲笑或排挤；<br>
-                    （三）导致受害者主动退群；<br>
-                    （四）导致现实班级关系紧张。<br>
-                    处理：公开道歉并临时移出7日，同时限制投票权30日。情节特别恶劣者，处永久移出。主动承认错误、公开澄清并取得受害者谅解的，从轻处理（临时移出3日，不限制投票权）。<br>
-                    传播谣言但未造成上述后果的，不构成本条行为，依《日常秩序维护办法》处理。
-                </div>
-
-                <div class="article">
-                    <span class="section-label">第六章 扰乱管理秩序行为</span>
-                </div>
-                <div class="article">
-                    <span class="article-title">第十八条 恶意举报</span>
-                    多次故意捏造事实举报他人，浪费管理资源，情节严重的，处临时移出24小时，并公开训诫。
-                </div>
-
-                <div class="doc-end">（严重违规行为处理条例 完）</div>
-            </div>
+            <span class="arrow">›</span>
         </div>
     </div>
 
-    <script>
-        (function() {
-            // DOM引用
-            const breadcrumb = document.getElementById('breadcrumb');
-            const listHome = document.getElementById('listHome');
-            const listFolder = document.getElementById('listFolder');
-            const docGeneral = document.getElementById('docGeneral');
-            const docPenal = document.getElementById('docPenal');
+    <!-- 子列表视图 -->
+    <div class="list-view hidden" id="listFolder">
+        <button class="back-btn" data-action="backToHome">
+            <span class="back-arrow">←</span> 返回
+        </button>
+        <div class="list-card" data-action="openDoc" data-doc="general">
+            <div class="icon icon-law">⚖</div>
+            <div class="card-info">
+                <div class="card-title">社群自治总纲</div>
+                <div class="card-meta">2026年5月29日版 · 待审议</div>
+            </div>
+            <span class="arrow">›</span>
+        </div>
+        <div class="list-card" data-action="openDoc" data-doc="penal">
+            <div class="icon icon-doc">📜</div>
+            <div class="card-info">
+                <div class="card-title">严重违规行为处理条例</div>
+                <div class="card-meta">依据《社群自治总纲》第四条制定</div>
+            </div>
+            <span class="arrow">›</span>
+        </div>
+    </div>
 
-            // 所有可切换的视图
-            const allViews = [listHome, listFolder, docGeneral, docPenal];
+    <!-- 内容视图：社群自治总纲 -->
+    <div class="content-view" id="docGeneral">
+        <button class="back-btn" data-action="backToFolder">
+            <span class="back-arrow">←</span> 返回
+        </button>
+        <div class="doc-body">
+            <div class="title">社群自治总纲</div>
+            <div class="subtitle">（2026年5月29日版 · 待审议）</div>
+            <div class="preamble">
+                <strong>序 言</strong><br>
+                本群全体成员，为维系彼此信赖之纽带，保障自由、有序、趣味之交流环境，基于共同意志，特制定本总纲，以为群内一切活动之根本准则。
+            </div>
 
-            // 当前状态
-            let currentView = 'home'; // 'home' | 'folder' | 'docGeneral' | 'docPenal'
+            <div class="chapter">第一章 总 纲</div>
+            <div class="article"><span class="article-title">第一条 群聊性质</span>本群是由江阴初级中学初二28班部分同学，基于自愿、平等、互信原则结成的网络社群。本群为独立虚拟空间，不依附于任何现实组织，不参与现实学校管理，仅供成员课余交流、分享趣闻、互助学习之用。</div>
+            <div class="article"><span class="article-title">第二条 基本准则</span>本群以"完全信赖、自由表达、相互尊重、保守秘密"为核心准则。鼓励成员在不违反群规的前提下，发表非恶意的任何形式内容，包括怪异图片、冷门梗、抽象发言及实验性创作。本群严禁任何形式的网络暴力、人身攻击和恶意造谣，倡导友善、理性、包容的交流风气。</div>
+            <div class="article"><span class="article-title">第三条 治理原则</span>本群实行在群主协调下的管理员分工负责制。管理员由全体成员选举产生，对全体成员负责，受成员监督。管理员依照本总纲及配套条例维护群聊秩序、保障成员权利。对管理员履职行为有异议者，应通过申诉、复核等正当程序提出，不得以破坏秩序的方式对抗。</div>
+            <div class="article"><span class="article-title">第四条 内部自治范围</span>本群依照本总纲及依据其制定的《严重违规行为处理条例》《日常秩序维护办法》《群内纠纷调解办法》实行自治管理。全体成员在规则面前一律平等，平等享有权利，平等履行义务。</div>
+            <div class="article"><span class="article-title">第五条 与外部法律关系</span>本群规则仅适用于群内虚拟空间。成员在现实生活中的行为，由其本人依法自行负责。本群规则之效力，不得与中华人民共和国法律、法规及公序良俗相抵触。</div>
 
-            // 隐藏所有视图
-            function hideAllViews() {
-                listHome.classList.add('hidden');
-                listFolder.classList.add('hidden');
-                docGeneral.classList.remove('active');
-                docPenal.classList.remove('active');
-            }
+            <div class="chapter">第二章 成员基本权利</div>
+            <div class="article"><span class="article-title">第六条 言论自由权</span>成员享有在总纲允许范围内自由发表观点、分享各类内容的权利。</div>
+            <div class="article"><span class="article-title">第七条 选举权与被选举权</span>入群时间达七日之正式成员，享有选举权与被选举权：<br>（一）选举权：有权参与管理员的投票选举。<br>（二）被选举权：有权被提名为管理员候选人并当选任职。<br>（三）选举办法：由群主或现任管理员组织匿名投票，得票前三名者，依次担任行政管理员、司法管理员、监察管理员。选举每六个月举行一次，如管理员空缺超过两人，须提前举行。<br>（四）群主不参与管理员选举，但拥有对选举结果的确认权，确认仅限于核实程序是否合规。</div>
+            <div class="article"><span class="article-title">第八条 投票权</span>正式成员有权对新成员入群申请进行投票。投票选项为"同意"或"不同意"，结果依本总纲第二十八条之规定执行。</div>
+            <div class="article"><span class="article-title">第九条 监督权与申诉权</span>成员有权对管理员及群主的行为提出监督意见；有权对所受处罚向司法管理员提出书面申诉；有权向监察管理员举报任何违规行为。</div>
+            <div class="article"><span class="article-title">第十条 知情权</span>成员有权查阅群内所有非私密的公告、处罚记录、选举结果。管理员团队应每月公布一次管理透明度报告。</div>
+            <div class="article"><span class="article-title">第十一条 特定信息讨论权</span>（一）成员有权在本群讨论、分享、创作本款第（二）项所定义之特定信息。<br>（二）特定信息，指正常社交中不常见但无恶意之内容，包括但不限于：怪异图片、冷门梗、抽象发言、实验性创作、非常规审美、小众兴趣话题、悬疑或虚构世界观设定等。明显违背中华人民共和国法律的内容，不在本款保护之列。<br>（三）成员不得以行使本条权利为名，实施刷屏、恶意恶心、人身攻击、泄密等行为，违者依相应条例处理。<br>（四）对特定信息不感兴趣之成员，应自行忽略或选择不看，不得以"恶心""无聊""看不懂"等纯主观理由，强制要求发言者停止。群聊无强制折叠功能，成员应自主管理个人阅读体验。<br>（五）对已造成普遍不适内容的拒绝权：若特定内容达到"严重令人不适"之程度（如排泄物、腐烂尸体特写、血腥残肢等），任何成员均有权明确表示拒绝（如"请别发了""这个太过了，停一下"）。发言者收到明确拒绝后，应立即停止发送同类内容，否则按扰乱秩序处理。"严重令人不适"的判断，由司法管理员结合一般初中生的普遍接受标准综合裁量；争议显著时，以群内投票过半数成员的判断为准。<br>（六）预警义务与责任豁免：鼓励成员在发布可能引起强烈不适的内容前，添加预警标签（如【慎入】【猎奇】【心理准备】等）。添加预警标签后发布的内容，即使造成部分成员不适，不视为违规；未添加预警标签，且造成三人以上成员明确表示精神不适的，司法管理员可裁定责令发布者道歉或删除内容。</div>
 
-            // 更新面包屑
-            function updateBreadcrumb(view) {
-                breadcrumb.innerHTML = '';
-                switch (view) {
-                    case 'home':
-                        breadcrumb.innerHTML =
-                            '<span class="crumb current" data-target="home">📁 首页</span>';
-                        break;
-                    case 'folder':
-                        breadcrumb.innerHTML =
-                            '<span class="crumb" data-target="home">📁 首页</span>' +
-                            '<span class="sep">›</span>' +
-                            '<span class="crumb current">入群必读</span>';
-                        break;
-                    case 'docGeneral':
-                        breadcrumb.innerHTML =
-                            '<span class="crumb" data-target="home">📁 首页</span>' +
-                            '<span class="sep">›</span>' +
-                            '<span class="crumb" data-target="folder">入群必读</span>' +
-                            '<span class="sep">›</span>' +
-                            '<span class="crumb current">社群自治总纲</span>';
-                        break;
-                    case 'docPenal':
-                        breadcrumb.innerHTML =
-                            '<span class="crumb" data-target="home">📁 首页</span>' +
-                            '<span class="sep">›</span>' +
-                            '<span class="crumb" data-target="folder">入群必读</span>' +
-                            '<span class="sep">›</span>' +
-                            '<span class="crumb current">严重违规行为处理条例</span>';
-                        break;
+            <div class="chapter">第三章 成员基本义务</div>
+            <div class="article"><span class="article-title">第十二条 保密义务</span>成员负有下列保密义务：<br>（一）不得以任何形式，向群外人员透露本群之存在、名称、二维码、成员名单等信息。<br>（二）不得向群外泄露群内任何聊天记录、文件、截图、链接等内容。<br>违反本义务者，一经核实，立即永久移出群聊并列入黑名单。其违规行为可在群内公告，以作警示。</div>
+            <div class="article"><span class="article-title">第十三条 反刷屏义务</span>成员负有维护正常交流秩序、反刷屏之义务：<br>（一）禁止连续发送五条及以上完全相同的内容。<br>（二）禁止连续发送十条及以上高度相似的内容。<br>违反者，按下列梯度处理（k为累计违规次数）：<br>· 第1次：警告。<br>· 第2次：公开批评。<br>· 第3次：临时移出2小时。<br>· 第4次：临时移出4小时。<br>· 第5次：临时移出8小时。<br>· 第6次：临时移出16小时。<br>· 第7次及以后：临时移出2^(k-2)小时。<br>所有违规记录由司法管理员统一登记，跨次累计，不予定期清零。</div>
+            <div class="article"><span class="article-title">第十四条 禁止私自邀请新成员</span>任何成员不得在未经入群投票批准的情况下，将新人邀请入群。必须先经投票通过，方可发出入群邀请。违反者，依本总纲第十三条第三次违规之标准处理，并须立即将所邀请之新人移出。情节严重者，司法管理员可认定其为泄密共犯，处以永久移出。</div>
+            <div class="article"><span class="article-title">第十五条 对外回应指引</span>（一）成员在群外被问及本群时，可得体回应，如"是同学间的小群，随便聊天"。本群鼓励成员保护社群隐私，但严禁任何强制、诱导成员为隐瞒本群存在而说谎的行为。<br>（二）任何成员不得主动向群外人员展示、传播本群群名、二维码、成员名单、聊天记录等具体信息。<br>（三）因主动或重大过失泄露本条第（二）项所指具体信息，造成严重后果的，依照《严重违规行为处理条例》中关于泄密的规定处理。</div>
+
+            <div class="chapter">第四章 管理团队</div>
+            <div class="section-label">第一节 群 主</div>
+            <div class="article"><span class="article-title">第十六条 群主职权</span>群主是社群之最高协调者与最终裁定者，由社群创始人担任。群主行使下列职权：<br>（一）提议修改、解释本总纲，修改须依第三十一条程序通过。<br>（二）组织管理员选举，确认选举结果。<br>（三）在三位管理员之间就管理事务出现重大争议且无法调和时，做出最终裁定。<br>（四）宣布特别管理状态：当发生重大泄密、严重外部威胁、群聊秩序面临崩溃等紧急情况时，群主可宣布进入特别管理状态，并采取全员禁言、暂时解散群聊、重组群聊等措施。特别管理状态持续时间不得超过72小时，到期自动解除。如需延长，须经全体成员投票且赞成率达70%以上。监察管理员在特别管理状态期间，有权随时要求群主说明情况。<br>（五）决定全面改选管理员团队，此项决定须经全体成员投票，赞成率达70%以上方可通过。<br>（六）任命空缺之管理员职务，但被任命者须在下一次选举时经成员追认，否则自动离职。<br>（七）行使特别赦免权，其条件与程序依第十七条之规定。<br>（八）群主更替：群主可提名继任者，经七日公示后由全体成员投票，赞成率达60%以上即通过。继任者须入群满三个月，且无泄密、人身攻击等严重违规记录。</div>
+            <div class="article"><span class="article-title">第十七条 特别赦免权</span>群主享有对被处罚成员减轻或免除剩余处罚的特别赦免权。其启动条件为：<br>（一）被处罚人已真诚悔过，并在群内公开道歉，承诺不再违规；<br>（二）违规行为未造成严重后果（泄密、严重人身攻击等不在此列）；<br>（三）所受处罚执行时间已过半；<br>（四）已取得直接受影响者的公开谅解。<br>赦免须征求司法管理员及监察管理员的意见，并在群内公示。若有超过30%的实际投票成员反对，监察管理员可提请复核。对同一人的同一违规行为，只能赦免一次。被赦免后七日内再次违规的，原赦免自动撤销，恢复剩余处罚并叠加新处罚。</div>
+
+            <div class="section-label">第二节 管理员</div>
+            <div class="article"><span class="article-title">第十八条 管理员设置与产生</span>本群设管理员三人，分别行使行政、司法、监察职权。管理员由全体成员选举产生，任期六个月，连任不得超过两届。</div>
+            <div class="article"><span class="article-title">第十九条 行政管理员职权</span>行政管理员负责下列事务：<br>（一）执行本总纲及管理团队的决定；<br>（二）日常维护群聊秩序，对反刷屏等即时违规行为进行警告，执行《日常秩序维护办法》中的当场处理措施；<br>（三）发起新成员入群投票；<br>（四）发布群公告及通知；<br>（五）在紧急情况下，依程序对严重扰乱秩序者先行采取临时移出措施。<br>行政管理员周末应保持在线。确无法履职时，可将权限临时转交司法或监察管理员代行，最长不超过72小时，并须公开说明。</div>
+            <div class="article"><span class="article-title">第二十条 司法管理员职权</span>司法管理员负责下列事务：<br>（一）审理成员对警告、移出等处理决定不服所提起的申诉；<br>（二）审理《严重违规行为处理条例》所规定之泄密、人身攻击、造谣等案件；<br>（三）审理《群内纠纷调解办法》所涉之侵权与纠纷；<br>（四）统一登记、管理反刷屏等违规记录；<br>（五）裁决成员间因言论引发的、未达到严重违规程度的纠纷；<br>（六）对行政管理员采取的紧急措施进行合规性审查。<br>司法管理员的裁决为群内最终裁决。成员对裁决不服的，可向群主申请复核一次。群主可维持、撤销裁决或发回重审。</div>
+            <div class="article"><span class="article-title">第二十一条 监察管理员职权</span>监察管理员负责下列事务：<br>（一）监督群主、行政管理员、司法管理员遵守本总纲的情况；<br>（二）受理成员对管理员及群主行为的投诉，以及泄密行为的举报；<br>（三）调查管理员滥用职权的行为，并向群主提出处理建议；<br>（四）每月公布管理透明度报告；<br>（五）对群主发起不信任动议：动议由监察管理员提出，经另一名管理员同意，并交付全体成员投票，若投票成员中超过50%表示同意，则群主应主动更替，依第十六条第八款之程序产生新群主。</div>
+
+            <div class="section-label">第三节 选举与更替</div>
+            <div class="article"><span class="article-title">第二十二条 选举周期</span>首次管理员选举于本总纲公布后一周内举行，此后每六个月举行一次。选举采用匿名投票，得票前三名当选。票数相同时，由群主裁定。</div>
+            <div class="article"><span class="article-title">第二十三条 管理员更替</span>管理员在任期内有下列情形之一者，可由群主或20%以上成员联名提议更替：<br>（一）严重违反本总纲；<br>（二）连续两周未能履行其应尽职责；<br>（三）滥用职权，造成恶劣影响。<br>更替动议须经全体成员投票，赞成率达到70%者，即予更替。空缺由群主临时任命，并于下次选举时补选。</div>
+
+            <div class="section-label">第四节 分权与制衡</div>
+            <div class="article"><span class="article-title">第二十四条 职权分立</span>行政管理员不得参与具体案件的司法审理。司法管理员不得擅自执行处罚，所有处罚决定的执行权归行政管理员。监察管理员不得直接修改或撤销行政、司法决定，其监督意见须向群主提出，或通过发起不信任动议的方式行使。</div>
+
+            <div class="chapter">第五章 临时移出措施的执行与复核</div>
+            <div class="article"><span class="article-title">第二十五条 先行移出与事后复核</span>对于正在发生的严重扰乱秩序行为（如恶意刷屏、持续性人身攻击），行政管理员有权在不经事先投票的情况下，先行将行为人临时移出。移出后，执行人须在24小时内在群内发起复核投票，说明理由并举证。投票选项为"同意移出"与"不同意移出"。投票时长为24小时，仅统计实际投票者。</div>
+            <div class="article"><span class="article-title">第二十六条 复核结果与责任</span>若"不同意移出"票数超过实际投票人数的60%，则移出无效，被移出人应立即恢复入群。此时，执行移出的管理员须承担误判责任：立即解除其管理员职务，三十日内不得担任任何管理员，并丧失下届被选举权。<br>若"不同意移出"票数未超过60%，则移出有效，此决定为最终决定，不得再申诉。</div>
+            <div class="article"><span class="article-title">第二十七条 特别管理状态下的豁免</span>群主宣布进入特别管理状态后，为恢复秩序而采取的集体解散或重组措施，不受第二十五、二十六条限制。</div>
+
+            <div class="chapter">第六章 新成员入群</div>
+            <div class="article"><span class="article-title">第二十八条 入群核准程序</span>新人申请入群，须通过以下任一通道：<br>（一）管理员通道：三名管理员一致同意。<br>（二）成员通道：在周末连续24小时的投票窗口内，同意票超过实际投票人数之半数。同时，参与投票人数须不少于群成员总数之20%，或不少于5人（取人数较少者）。<br>投票由行政管理员发起，须公示候选人之昵称、来源及入群理由。投票通过后，方可邀请入群。未通过者，三十日后方可重新申请。</div>
+
+            <div class="chapter">第七章 成员退出</div>
+            <div class="article"><span class="article-title">第二十九条 自愿退出</span>成员可自愿退群。退群前建议告知管理员。退群后三十日内不得重新申请入群。退群不免除其退群前已发生违规行为的责任。</div>
+
+            <div class="chapter">第八章 群名、群歌、群徽</div>
+            <div class="article"><span class="article-title">第三十条 社群标识</span>本群之群名、群歌、群徽由全体成员投票选定。一经确定，即受本总纲保护，任何成员不得擅自更改或恶意篡改。</div>
+
+            <div class="chapter">第九章 附 则</div>
+            <div class="article"><span class="article-title">第三十一条 总纲修改</span>本总纲之修改，须经群主提议，或10%以上成员联名提出，经过至少三日公示与投票，且赞成票达到全体成员之70%以上，方可通过。</div>
+            <div class="article"><span class="article-title">第三十二条 施行日期</span>本总纲自公布之日起施行。</div>
+            <div class="doc-end">（社群自治总纲 完）</div>
+        </div>
+    </div>
+
+    <!-- 内容视图：严重违规行为处理条例 -->
+    <div class="content-view" id="docPenal">
+        <button class="back-btn" data-action="backToFolder">
+            <span class="back-arrow">←</span> 返回
+        </button>
+        <div class="doc-body">
+            <div class="title" style="font-size: 24px;">严重违规行为处理条例</div>
+            <div class="subtitle">（依据《社群自治总纲》第四条制定）</div>
+
+            <div class="chapter">第一编 总 则</div>
+            <div class="article"><span class="article-title">第一条</span> 为处理群内最严重的违规行为，维护群聊安全，根据《社群自治总纲》，制定本条例。</div>
+            <div class="article"><span class="article-title">第二条</span> 本条例所称"严重违规行为"，仅指群内严重违反基本准则的行为，适用群内处理措施，不涉及现实法律后果。</div>
+            <div class="article"><span class="article-title">第三条</span> 处理严重违规行为，须以本条例明文规定为依据；本条例无明文规定的，不得认定为严重违规行为并施以处理。</div>
+            <div class="article"><span class="article-title">第四条</span> 对任何人的严重违规行为，在处理上一律平等。</div>
+            <div class="article"><span class="article-title">第五条</span> 处理措施种类如下：<br>（一）警告、公开训诫；<br>（二）限制群内部分权利（如暂停投票权、发言权）；<br>（三）临时移出群聊（12小时、24小时、48小时、72小时、7日）；<br>（四）永久移出并列入黑名单；<br>（五）附加措施：公开道歉、完成一项对群聊有益的志愿服务（如整理群文件、编写群规宣传文案）。</div>
+            <div class="article"><span class="article-title">第六条</span> 故意违规，从重处理；过失违规，从轻处理。三十日内再次违规者，在原处理基础上加重50%。</div>
+            <div class="article"><span class="article-title">第七条 从重情节</span>（一）累犯；<br>（二）共同违规中的主导者；<br>（三）违规对象为管理员、群主或新入群成员；<br>（四）在群主宣布的特别管理状态期间违规；<br>（五）教唆或胁迫他人违规。</div>
+            <div class="article"><span class="article-title">第八条 从轻、减轻或免除处理情节</span>（一）主动向管理员坦白并如实陈述；<br>（二）检举他人严重违规行为，经查证属实；<br>（三）取得直接受影响者的书面或公开谅解；<br>（四）初次违规且情节轻微；<br>（五）因遭受严重挑衅或霸凌而被动反击。</div>
+            <div class="article"><span class="article-title">第九条 共同违规</span>二人以上共同故意实施严重违规行为者，按其在行为中的作用分别处理。主导者从重处理，参与者从轻或减轻处理。教唆他人者，按主导者处理。被胁迫参与者，应减轻或免除处理。</div>
+            <div class="article"><span class="article-title">第十条 违规中止与未遂</span>在违规过程中自动放弃的，可免除处理；因意志以外原因未能得逞的，可从轻处理。</div>
+            <div class="article"><span class="article-title">第十一条 记录消除</span>因过失违规或一般情节之行为被处理后，连续三个月无任何违规的，可向司法管理员申请消除该次记录。记录消除后，不影响未来违规时首次违规的认定。</div>
+
+            <div class="chapter">第二编 分 则</div>
+            <div class="section-label">第四章 危害社群安全行为</div>
+            <div class="article"><span class="article-title">第十二条 故意泄密</span>故意违反保密义务，将群内聊天记录、群名、二维码等泄露给群外人，且造成下列后果之一的，构成故意泄密：<br>（一）导致三名以上成员退群；<br>（二）导致群主被迫解散或重组群聊；<br>（三）导致成员在现实中受到较大影响（如被老师批评、被家长严厉管教）；<br>（四）泄露内容被大范围传播。<br>处理：永久移出并列入黑名单。<br>泄露少量非核心信息（如单张不重要表情包、无上下文的一句话截图），且未造成上述后果的，不构成本条行为，依《日常秩序维护办法》处理。</div>
+            <div class="article"><span class="article-title">第十三条 过失致泄密</span>因疏忽大意或过于自信，过失导致泄密，并造成第十二条所列严重后果的，处公开道歉并临时移出72小时。过失泄密后主动报告、积极消除影响并取得全体成员谅解的，可免除临时移出，改为公开批评并观察7日。</div>
+            <div class="article"><span class="article-title">第十四条 严重私自邀请新成员</span>未经入群投票批准，私自邀请新成员入群累计达两次以上者，处临时移出48小时；导致被邀请者泄密或破坏群内秩序的，处永久移出。</div>
+            <div class="article"><span class="article-title">第十五条 冒充管理员</span>盗用管理员头像或昵称，或自称管理员、群主以发布虚假指令、威胁他人、骗取信息者，处临时移出48小时；造成恐慌或实际损害的，处永久移出。</div>
+
+            <div class="section-label">第五章 侵犯人身权利行为</div>
+            <div class="article"><span class="article-title">第十六条 人身攻击</span>使用恶劣侮辱性词汇、恶毒诅咒、公开他人真实姓名班级照片、威胁现实安全等行为，构成人身攻击。<br>一般情节：公开道歉并临时移出24小时。<br>从重情节：<br>（一）使用脏话侮辱对方父母等直系亲属的，无论有无其他攻击内容，均视为严重人身攻击，处公开道歉并临时移出72小时，同时限制投票权30天。<br>（二）攻击三人以上，或导致受害人退群的，处永久移出。<br>（三）攻击管理员或群主的，处永久移出。<br>（四）攻击行为在群内引发严重对立与分裂的，处永久移出。</div>
+            <div class="article"><span class="article-title">第十七条 造谣传谣</span>捏造虚假事实恶意散布，或明知是谣言仍传播，且造成下列后果之一的，构成造谣传谣：<br>（一）导致两名以上成员之间爆发冲突；<br>（二）导致受害者被三人以上孤立、嘲笑或排挤；<br>（三）导致受害者主动退群；<br>（四）导致现实班级关系紧张。<br>处理：公开道歉并临时移出7日，同时限制投票权30日。情节特别恶劣者，处永久移出。主动承认错误、公开澄清并取得受害者谅解的，从轻处理（临时移出3日，不限制投票权）。<br>传播谣言但未造成上述后果的，不构成本条行为，依《日常秩序维护办法》处理。</div>
+
+            <div class="section-label">第六章 扰乱管理秩序行为</div>
+            <div class="article"><span class="article-title">第十八条 恶意举报</span>多次故意捏造事实举报他人，浪费管理资源，情节严重的，处临时移出24小时，并公开训诫。</div>
+            <div class="doc-end">（严重违规行为处理条例 完）</div>
+        </div>
+    </div>
+</div>
+
+<!-- 悬浮目录 TOC 浮窗 -->
+<div class="floating-toc" id="floatingToc">
+    <h4>📑 章节导航</h4>
+    <ul class="toc-list" id="tocList"></ul>
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const breadcrumb = document.getElementById('breadcrumb');
+        const listHome = document.getElementById('listHome');
+        const listFolder = document.getElementById('listFolder');
+        const docGeneral = document.getElementById('docGeneral');
+        const docPenal = document.getElementById('docPenal');
+        const floatingToc = document.getElementById('floatingToc');
+        const tocListEl = document.getElementById('tocList');
+
+        let currentView = 'home'; // home, folder, docGeneral, docPenal
+        let scrollHandler = null;
+        let currentTocItems = []; // 存储当前目录 { element, link }
+
+        // 工具：平滑滚动到元素
+        function smoothScrollToElement(element) {
+            if (!element) return;
+            const offset = 70; // 与 scroll-margin-top 一致
+            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+        }
+
+        // 构建当前激活文档的目录
+        function buildTocForDocument(docViewId) {
+            const docElement = document.getElementById(docViewId);
+            if (!docElement) return;
+            const body = docElement.querySelector('.doc-body');
+            if (!body) return;
+
+            // 提取所有标题元素：.chapter, .section-label, .article-title
+            const headings = body.querySelectorAll('.chapter, .section-label, .article-title');
+            if (headings.length === 0) return;
+
+            // 清空TOC列表
+            tocListEl.innerHTML = '';
+            const tocItems = [];
+
+            headings.forEach((heading, idx) => {
+                // 为每个标题生成唯一id（如果没有）
+                let headingId = heading.id;
+                if (!headingId) {
+                    headingId = `toc-${docViewId}-${idx}`;
+                    heading.id = headingId;
                 }
-                // 绑定面包屑点击事件
-                bindBreadcrumbClicks();
-            }
+                // 获取标题文本
+                let titleText = heading.innerText.trim();
+                if (titleText.length > 40) titleText = titleText.substring(0, 38) + '…';
+                // 确定层级
+                let levelClass = '';
+                if (heading.classList.contains('chapter')) levelClass = 'toc-level-1';
+                else if (heading.classList.contains('section-label')) levelClass = 'toc-level-2';
+                else if (heading.classList.contains('article-title')) levelClass = 'toc-level-3';
 
-            // 绑定面包屑中的可点击crumb
-            function bindBreadcrumbClicks() {
-                const crumbs = breadcrumb.querySelectorAll('.crumb[data-target]');
-                crumbs.forEach(crumb => {
-                    crumb.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const target = this.getAttribute('data-target');
-                        if (target === 'home') {
-                            navigateTo('home');
-                        } else if (target === 'folder') {
-                            navigateTo('folder');
-                        }
-                    });
-                });
-            }
-
-            // 导航到指定视图
-            function navigateTo(view) {
-                hideAllViews();
-                currentView = view;
-                switch (view) {
-                    case 'home':
-                        listHome.classList.remove('hidden');
-                        break;
-                    case 'folder':
-                        listFolder.classList.remove('hidden');
-                        break;
-                    case 'docGeneral':
-                        docGeneral.classList.add('active');
-                        // 滚动到顶部
-                        docGeneral.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        break;
-                    case 'docPenal':
-                        docPenal.classList.add('active');
-                        docPenal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        break;
-                }
-                updateBreadcrumb(view);
-                // 页面滚动到顶部
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-
-            // 事件委托：处理列表卡片点击
-            document.addEventListener('click', function(e) {
-                // 查找最近的 .list-card
-                const card = e.target.closest('.list-card');
-                if (card) {
-                    const action = card.getAttribute('data-action');
-                    if (action === 'openFolder') {
-                        navigateTo('folder');
-                    } else if (action === 'openDoc') {
-                        const doc = card.getAttribute('data-doc');
-                        if (doc === 'general') {
-                            navigateTo('docGeneral');
-                        } else if (doc === 'penal') {
-                            navigateTo('docPenal');
-                        }
-                    }
-                    return;
-                }
-
-                // 查找返回按钮
-                const backBtn = e.target.closest('.back-btn');
-                if (backBtn) {
-                    const action = backBtn.getAttribute('data-action');
-                    if (action === 'backToHome') {
-                        navigateTo('home');
-                    } else if (action === 'backToFolder') {
-                        navigateTo('folder');
-                    }
-                    return;
-                }
-            });
-
-            // 键盘导航：支持退格键返回
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace' && !e.target.closest('input,textarea,[contenteditable]')) {
+                const listItem = document.createElement('li');
+                const link = document.createElement('a');
+                link.textContent = titleText;
+                link.href = `#${headingId}`;
+                link.setAttribute('data-target-id', headingId);
+                link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (currentView === 'docGeneral' || currentView === 'docPenal') {
-                        navigateTo('folder');
-                    } else if (currentView === 'folder') {
-                        navigateTo('home');
-                    }
+                    const targetEl = document.getElementById(headingId);
+                    if (targetEl) smoothScrollToElement(targetEl);
+                });
+                if (levelClass) link.classList.add(levelClass);
+                listItem.appendChild(link);
+                tocListEl.appendChild(listItem);
+                tocItems.push({ element: heading, link: link });
+            });
+            return tocItems;
+        }
+
+        // 高亮当前视口最近的标题
+        function highlightCurrentTocItem(tocItems) {
+            if (!tocItems.length) return;
+            let closestIndex = -1;
+            let minDistance = Infinity;
+            const viewportMid = window.scrollY + 100; // 偏移量
+
+            for (let i = 0; i < tocItems.length; i++) {
+                const rect = tocItems[i].element.getBoundingClientRect();
+                const elementTop = rect.top + window.scrollY;
+                const distance = Math.abs(elementTop - viewportMid);
+                if (distance < minDistance && rect.top < window.innerHeight - 100) {
+                    minDistance = distance;
+                    closestIndex = i;
+                }
+            }
+            // 如果找不到合适的，尝试取第一个可见的
+            if (closestIndex === -1 && tocItems.length) closestIndex = 0;
+            tocItems.forEach((item, idx) => {
+                if (idx === closestIndex) {
+                    item.link.classList.add('active');
+                    // 让active项滚动到toc可见区域（可选）
+                    item.link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                } else {
+                    item.link.classList.remove('active');
                 }
             });
+        }
 
-            // 初始化
-            navigateTo('home');
-        })();
-    </script>
+        // 启动滚动高亮监听
+        function enableScrollHighlight(tocItems) {
+            if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+            scrollHandler = () => highlightCurrentTocItem(tocItems);
+            window.addEventListener('scroll', scrollHandler);
+            // 立即高亮一次
+            highlightCurrentTocItem(tocItems);
+        }
+
+        // 停止滚动高亮
+        function disableScrollHighlight() {
+            if (scrollHandler) {
+                window.removeEventListener('scroll', scrollHandler);
+                scrollHandler = null;
+            }
+        }
+
+        // 刷新 TOC 显示（根据当前视图）
+        function refreshToc() {
+            if (currentView === 'docGeneral') {
+                const items = buildTocForDocument('docGeneral');
+                currentTocItems = items || [];
+                if (currentTocItems.length) {
+                    floatingToc.classList.add('visible');
+                    enableScrollHighlight(currentTocItems);
+                } else {
+                    floatingToc.classList.remove('visible');
+                }
+            } else if (currentView === 'docPenal') {
+                const items = buildTocForDocument('docPenal');
+                currentTocItems = items || [];
+                if (currentTocItems.length) {
+                    floatingToc.classList.add('visible');
+                    enableScrollHighlight(currentTocItems);
+                } else {
+                    floatingToc.classList.remove('visible');
+                }
+            } else {
+                floatingToc.classList.remove('visible');
+                disableScrollHighlight();
+                currentTocItems = [];
+            }
+        }
+
+        // 隐藏所有视图
+        function hideAllViews() {
+            listHome.classList.add('hidden');
+            listFolder.classList.add('hidden');
+            docGeneral.classList.remove('active');
+            docPenal.classList.remove('active');
+        }
+
+        // 更新面包屑导航（粘性无需额外处理，只改内容）
+        function updateBreadcrumb(view) {
+            breadcrumb.innerHTML = '';
+            switch (view) {
+                case 'home':
+                    breadcrumb.innerHTML = '<span class="crumb current" data-target="home">📁 首页</span>';
+                    break;
+                case 'folder':
+                    breadcrumb.innerHTML = '<span class="crumb" data-target="home">📁 首页</span><span class="sep">›</span><span class="crumb current">入群必读</span>';
+                    break;
+                case 'docGeneral':
+                    breadcrumb.innerHTML = '<span class="crumb" data-target="home">📁 首页</span><span class="sep">›</span><span class="crumb" data-target="folder">入群必读</span><span class="sep">›</span><span class="crumb current">社群自治总纲</span>';
+                    break;
+                case 'docPenal':
+                    breadcrumb.innerHTML = '<span class="crumb" data-target="home">📁 首页</span><span class="sep">›</span><span class="crumb" data-target="folder">入群必读</span><span class="sep">›</span><span class="crumb current">严重违规行为处理条例</span>';
+                    break;
+            }
+            bindBreadcrumbClicks();
+        }
+
+        function bindBreadcrumbClicks() {
+            const crumbs = breadcrumb.querySelectorAll('.crumb[data-target]');
+            crumbs.forEach(crumb => {
+                crumb.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = crumb.getAttribute('data-target');
+                    if (target === 'home') navigateTo('home');
+                    else if (target === 'folder') navigateTo('folder');
+                });
+            });
+        }
+
+        function navigateTo(view) {
+            hideAllViews();
+            currentView = view;
+            switch (view) {
+                case 'home':
+                    listHome.classList.remove('hidden');
+                    break;
+                case 'folder':
+                    listFolder.classList.remove('hidden');
+                    break;
+                case 'docGeneral':
+                    docGeneral.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    break;
+                case 'docPenal':
+                    docPenal.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    break;
+            }
+            updateBreadcrumb(view);
+            refreshToc();  // 重建TOC
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 事件委托
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.list-card');
+            if (card) {
+                const action = card.getAttribute('data-action');
+                if (action === 'openFolder') navigateTo('folder');
+                else if (action === 'openDoc') {
+                    const doc = card.getAttribute('data-doc');
+                    if (doc === 'general') navigateTo('docGeneral');
+                    else if (doc === 'penal') navigateTo('docPenal');
+                }
+                return;
+            }
+            const backBtn = e.target.closest('.back-btn');
+            if (backBtn) {
+                const action = backBtn.getAttribute('data-action');
+                if (action === 'backToHome') navigateTo('home');
+                else if (action === 'backToFolder') navigateTo('folder');
+                return;
+            }
+        });
+
+        // 键盘支持：退格键返回
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.closest('input,textarea,[contenteditable]')) {
+                e.preventDefault();
+                if (currentView === 'docGeneral' || currentView === 'docPenal') navigateTo('folder');
+                else if (currentView === 'folder') navigateTo('home');
+            }
+        });
+
+        // 启动
+        navigateTo('home');
+    })();
+</script>
 </body>
 </html>

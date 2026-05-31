@@ -164,10 +164,10 @@
         .list-card .card-meta { font-size: 13px; color: #999; margin-top: 2px; }
         .list-card .arrow { font-size: 18px; color: #c0b8a8; transition: transform var(--transition); }
         .list-card:hover .arrow { transform: translateX(3px); }
-        
+
         /* 阅读状态徽章 */
         .read-badge {
-            font-size: 12px;
+            font-size: 11px;
             padding: 2px 8px;
             border-radius: 20px;
             background: #f0f0f0;
@@ -184,56 +184,41 @@
             color: #bf360c;
         }
 
-        /* 同意区域卡片 */
-        .agree-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            margin-top: 8px;
+        /* 底部同意区域（精简版） */
+        .agree-footer {
+            margin-top: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            box-shadow: var(--shadow);
-        }
-        .agree-status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-        }
-        .agree-status .status-icon {
-            font-size: 20px;
+            gap: 8px;
         }
         .agree-btn {
-            background: var(--accent);
+            background: #aaa;
             border: none;
             color: white;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
-            padding: 8px 24px;
+            padding: 10px 28px;
             border-radius: 40px;
-            cursor: pointer;
+            cursor: not-allowed;
             transition: all 0.2s;
             font-family: inherit;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            width: 220px;
+            letter-spacing: 2px;
         }
-        .agree-btn:disabled {
-            background: #aaa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .agree-btn.active {
+            background: var(--accent);
+            cursor: pointer;
         }
-        .agree-btn:not(:disabled):hover {
+        .agree-btn.active:hover {
             background: var(--accent-light);
             transform: scale(1.02);
         }
-        .agree-note {
-            font-size: 12px;
+        .agree-hint {
+            font-size: 13px;
             color: #888;
-            margin-left: 8px;
+            text-align: center;
         }
 
         /* 内容视图 */
@@ -408,8 +393,6 @@
             body { padding: 16px 10px 40px; }
             .doc-body .doc-title { font-size: 22px; }
             .doc-body .chapter { font-size: 17px; }
-            .agree-card { flex-direction: column; align-items: stretch; text-align: center; }
-            .agree-btn { align-self: center; }
         }
     </style>
 </head>
@@ -454,15 +437,11 @@
             <span class="arrow">›</span>
         </div>
 
-        <!-- 同意区域卡片 -->
-        <div class="agree-card" id="agreeCard">
-            <div class="agree-status">
-                <span class="status-icon" id="statusIcon">📖</span>
-                <span id="agreeMessage">请先阅读以上全部文件</span>
-            </div>
+        <!-- 底部同意区域：只显示按钮和小字 -->
+        <div class="agree-footer">
             <button class="agree-btn" id="agreeBtn" disabled>我已阅读并同意</button>
+            <div class="agree-hint" id="agreeHint">请先阅读所有文件</div>
         </div>
-        <div class="agree-note" style="margin-top: -6px; text-align: center;">※ 需点开并查看每份文件后，才可确认同意</div>
     </div>
 
     <!-- 社群自治总纲（宪法格式版） -->
@@ -485,7 +464,6 @@
             <div class="article"><span class="article-number">第九条</span><div class="article-content">成员有权对管理员及群主的行为提出监督意见；有权对所受处罚向司法管理员提出书面申诉；有权向监察管理员举报任何违规行为。</div></div>
             <div class="article"><span class="article-number">第十条</span><div class="article-content">成员有权查阅群内所有非私密的公告、处罚记录、选举结果。管理员团队应每月公布一次管理透明度报告。</div></div>
             <div class="article"><span class="article-number">第十一条</span><div class="article-content">（一）成员有权在本群讨论、分享、创作本款第（二）项所定义之特定信息。<br>（二）特定信息，指正常社交中不常见但无恶意之内容，包括但不限于：怪异图片、冷门梗、抽象发言、实验性创作、非常规审美、小众兴趣话题、悬疑或虚构世界观设定等。明显违背中华人民共和国法律的内容，不在本款保护之列。<br>（三）成员不得以行使本条权利为名，实施刷屏、恶意恶心、人身攻击、泄密等行为，违者依相应条例处理。<br>（四）对特定信息不感兴趣之成员，应自行忽略或选择不看，不得以“恶心”“无聊”“看不懂”等纯主观理由，强制要求发言者停止。群聊无强制折叠功能，成员应自主管理个人阅读体验。<br>（五）对已造成普遍不适内容的拒绝权：若特定内容达到“严重令人不适”之程度（如排泄物、腐烂尸体特写、血腥残肢等），任何成员均有权明确表示拒绝（如“请别发了”“这个太过了，停一下”）。发言者收到明确拒绝后，应立即停止发送同类内容，否则按扰乱秩序处理。“严重令人不适”的判断，由司法管理员结合一般初中生的普遍接受标准综合裁量；争议显著时，以群内投票过半数成员的判断为准。<br>（六）预警义务与责任豁免：鼓励成员在发布可能引起强烈不适的内容前，添加预警标签（如【慎入】【猎奇】【心理准备】等）。添加预警标签后发布的内容，即使造成部分成员不适，不视为违规；未添加预警标签，且造成三人以上成员明确表示精神不适的，司法管理员可裁定责令发布者道歉或删除内容。</div></div>
-            <!-- 后续章节省略以保证文件长度适中，核心条文已保留，完整逻辑不受影响 -->
             <div class="doc-end">（社群自治总纲　完）</div>
         </div>
     </div>
@@ -527,10 +505,9 @@
         const floatingToc = document.getElementById('floatingToc');
         const tocListEl = document.getElementById('tocList');
         
-        // 同意组件元素
+        // 底部同意组件
         const agreeBtn = document.getElementById('agreeBtn');
-        const agreeMessageSpan = document.getElementById('agreeMessage');
-        const statusIconSpan = document.getElementById('statusIcon');
+        const agreeHint = document.getElementById('agreeHint');
         const badgeGeneral = document.getElementById('badgeGeneral');
         const badgePenal = document.getElementById('badgePenal');
 
@@ -538,13 +515,14 @@
         let scrollHandler = null;
         let currentTocItems = [];
 
-        // 阅读与同意状态（存储到 sessionStorage 支持刷新后保留）
+        // 阅读状态（使用 sessionStorage 持久化）
         let viewedGeneral = sessionStorage.getItem('viewedGeneral') === 'true';
         let viewedPenal = sessionStorage.getItem('viewedPenal') === 'true';
         let agreed = sessionStorage.getItem('agreed') === 'true';
 
-        // 更新文件夹页面中的阅读徽章和同意按钮状态
+        // 更新底部按钮状态和小字提示
         function updateAgreementUI() {
+            // 更新徽章文字
             if (badgeGeneral) {
                 badgeGeneral.textContent = viewedGeneral ? '已读' : '未读';
                 badgeGeneral.className = viewedGeneral ? 'read-badge read' : 'read-badge unread';
@@ -559,29 +537,28 @@
             if (agreed) {
                 agreeBtn.disabled = true;
                 agreeBtn.textContent = '✓ 已同意';
-                agreeMessageSpan.textContent = '您已完成阅读并同意所有文件';
-                statusIconSpan.textContent = '✅';
-                if (agreeBtn) agreeBtn.style.background = '#2e7d32';
+                agreeBtn.classList.remove('active');
+                agreeHint.textContent = '您已完成阅读并同意所有文件';
                 return;
             }
             
             if (bothViewed) {
                 agreeBtn.disabled = false;
+                agreeBtn.classList.add('active');
                 agreeBtn.textContent = '我已阅读并同意';
-                agreeMessageSpan.textContent = '所有文件均已阅读，请确认同意';
-                statusIconSpan.textContent = '📜✅';
+                agreeHint.textContent = '所有文件均已阅读，请点击确认';
             } else {
                 agreeBtn.disabled = true;
+                agreeBtn.classList.remove('active');
                 agreeBtn.textContent = '我已阅读并同意';
                 let unreadList = [];
                 if (!viewedGeneral) unreadList.push('《社群自治总纲》');
                 if (!viewedPenal) unreadList.push('《严重违规行为处理条例》');
-                agreeMessageSpan.textContent = `请先点开阅读：${unreadList.join('、')}`;
-                statusIconSpan.textContent = '📖⚠️';
+                agreeHint.textContent = `请先阅读：${unreadList.join('、')}`;
             }
         }
 
-        // 标记文件为已读（传入文档类型 general/penal）
+        // 标记文档为已读
         function markAsViewed(docType) {
             if (docType === 'general' && !viewedGeneral) {
                 viewedGeneral = true;
@@ -594,18 +571,14 @@
             }
         }
 
-        // 同意操作
+        // 同意确认
         function confirmAgree() {
-            if (!viewedGeneral || !viewedPenal) {
-                return;
-            }
+            if (!viewedGeneral || !viewedPenal) return;
             if (agreed) return;
             agreed = true;
             sessionStorage.setItem('agreed', 'true');
             updateAgreementUI();
-            // 可选反馈
             alert('感谢您的确认！您已承诺遵守群内全部规章制度。');
-            // 可以增加额外逻辑，例如跳转或显示成功提示
         }
 
         // 平滑滚动
@@ -616,7 +589,7 @@
             window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
         }
 
-        // 构建悬浮目录（仅章节、节）
+        // 构建悬浮目录
         function buildTocForDocument(docViewId) {
             const docElement = document.getElementById(docViewId);
             if (!docElement) return;
@@ -748,15 +721,15 @@
                 case 'home': listHome.classList.remove('hidden'); break;
                 case 'folder': 
                     listFolder.classList.remove('hidden'); 
-                    updateAgreementUI();   // 刷新按钮、徽章状态
+                    updateAgreementUI();
                     break;
                 case 'docGeneral': 
                     docGeneral.classList.add('active'); 
-                    markAsViewed('general');   // 打开总纲即标记已读
+                    markAsViewed('general');
                     break;
                 case 'docPenal': 
                     docPenal.classList.add('active'); 
-                    markAsViewed('penal');     // 打开条例即标记已读
+                    markAsViewed('penal');
                     break;
             }
             updateBreadcrumb(view);
@@ -764,12 +737,12 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 监听同意按钮
+        // 绑定同意按钮事件
         if (agreeBtn) {
             agreeBtn.addEventListener('click', confirmAgree);
         }
 
-        // 全局事件委托
+        // 全局事件委托：处理卡片点击
         document.addEventListener('click', (e) => {
             const card = e.target.closest('.list-card');
             if (card) {
@@ -791,6 +764,7 @@
             }
         });
 
+        // 键盘退格返回
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !e.target.closest('input,textarea,[contenteditable]')) {
                 e.preventDefault();
@@ -799,7 +773,7 @@
             }
         });
 
-        // 初始化UI，同步sessionStorage中的阅读状态
+        // 初始化 UI
         updateAgreementUI();
         navigateTo('home');
     })();
